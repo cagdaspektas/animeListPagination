@@ -11,7 +11,18 @@ import 'package:shimmer/shimmer.dart';
 import '../../mocks/anime_repo_mocks.dart';
 
 void main() {
-  late AnimeBloc mockBloc;
+  late MockAnimeBloc mockBloc;
+
+  setUp(() async {
+    mockBloc = MockAnimeBloc();
+    await configureDependencies();
+  });
+  setUpAll(() {
+    registerFallbackValue(AnimeStateFake());
+    registerFallbackValue(AnimeEventFake());
+  });
+
+  tearDown(() => resetMocktailState());
 
   List<AnimeList?> generateMockAnimeList(int count) {
     return List.generate(
@@ -28,56 +39,70 @@ void main() {
     );
   }
 
-  setUp(() async {
-    await configureDependencies();
-    mockBloc = MockAnimeBloc();
-  });
+  Widget _makeTestableWidget(Widget body) {
+    return BlocProvider<AnimeBloc>(
+      create: (context) => mockBloc,
+      child: MaterialApp(
+        home: body,
+      ),
+    );
+  }
 
-  tearDown(() {
-    mockBloc.close();
-  });
+  var data = generateMockAnimeList(4);
 
-  group('AnimeView Widget Test', () {
-    testWidgets('Initial State', (WidgetTester tester) async {
-      final mockBloc = MockAnimeBloc();
+  final oneData = AnimeList(
+    title: 'Anime 10',
+    malId: 10,
+    images: DatumImages(jpg: Jpg(imageUrl: "https://cdn.myanimelist.net/images/anime/1792/138022.jpg")),
+    score: 8.0,
+    genres: [Demographic(name: "anime")],
+    synopsis: 'Synopsis for Anime 10',
+    episodes: 12,
+  );
 
+  testWidgets(
+    'text field should trigger state to change from empty to loading',
+    (widgetTester) async {
       when(() => mockBloc.state).thenReturn(AnimeInitial());
-      await tester.pumpWidget(
-        MaterialApp(
-          home: BlocProvider<AnimeBloc>.value(
-            value: mockBloc,
-            child: const AnimeView(),
-          ),
-        ),
-      );
 
-      // title doğru mu?
+      await widgetTester.pumpWidget(_makeTestableWidget(const AnimeView()));
       expect(find.text('Anime App'), findsOneWidget);
 
       // yükleniyor mu?
       expect(find.byType(Shimmer), findsOneWidget);
-    });
-    testWidgets('Datas State', (WidgetTester tester) async {
-      final mockBloc = MockAnimeBloc();
-      var data = generateMockAnimeList(4);
+    },
+  );
+  testWidgets(
+    ' state is NoAnimalState',
+    (widgetTester) async {
+      when(() => mockBloc.state).thenReturn(NoAnimalState());
 
-      mockBloc.add(GetAnimeDatas());
-      await tester.pumpAndSettle(const Duration(seconds: 5));
+      await widgetTester.pumpWidget(_makeTestableWidget(const AnimeView()));
+
+      await widgetTester.pump(const Duration(seconds: 2));
+
+      expect(find.textContaining("No animal available"), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'state is ErrorAnimalState',
+    (widgetTester) async {
+      when(() => mockBloc.state).thenReturn(const ErrorAnimalState("error"));
+
+      await widgetTester.pumpWidget(_makeTestableWidget(const AnimeView()));
+
+      expect(find.textContaining("error"), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    ' state is AnimeDatasState',
+    (widgetTester) async {
       when(() => mockBloc.state).thenReturn(AnimeDatasState(Anime(data: data)));
-      await tester.pumpWidget(
-        MaterialApp(
-          home: BlocProvider<AnimeBloc>.value(
-            value: mockBloc,
-            child: const AnimeView(),
-          ),
-        ),
-      );
-      await tester.pump();
 
-      //grid yüklendi mi?
-      expect(find.byType(GridView), findsOneWidget);
-
-      expect(find.text('Anime 0'), anything);
-    });
-  });
+      await widgetTester.pumpWidget(_makeTestableWidget(const AnimeView()));
+      expect(find.byKey(const Key("gridValue")), findsOneWidget);
+    },
+  );
 }

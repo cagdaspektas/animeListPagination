@@ -29,23 +29,23 @@ class AnimeView extends StatelessWidget {
         bloc: bloc,
         builder: (context, state) {
           if (state is ErrorAnimalState) {
-            return _errorNewsState(state.error);
+            return _errorAnimalState(state.error);
           } else if (state is AnimeInitial) {
             bloc.add(GetAnimeDatas());
-            return _loadingNewsState(context);
+            return _loadingAnimalState(context);
           } else if (state is NoAnimalState) {
-            return _noNewsState();
+            return _noAnimalState();
           } else if (state is AnimeDatasState) {
-            return _articles(context, state.animes.data, bloc);
+            return _animes(context, state.animes.data, bloc);
           } else if (state is AnimeDataPagination) {
-            return _articles(context, state.animeList, bloc);
+            return _animes(context, state.animeList, bloc);
           }
 
           return const SizedBox();
         },
       );
 
-  Widget _articles(context, List<AnimeList?>? animes, AnimeBloc bloc) {
+  Widget _animes(context, List<AnimeList?>? animes, AnimeBloc bloc) {
     return GridView.builder(
       controller: bloc.scrollController,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -56,7 +56,6 @@ class AnimeView extends StatelessWidget {
           mainAxisExtent: MediaQuery.of(context).size.height / 1.9),
       itemCount: animes?.length,
       itemBuilder: (context, index) => AnimeListWidget(
-        key: Key(animes?[index]?.malId.toString() ?? "gridValue0"),
         animes: animes?[index],
         onTap: () {
           Navigator.push(
@@ -77,15 +76,15 @@ class AnimeView extends StatelessWidget {
     );
   }
 
-  Widget _errorNewsState(String error) => Center(
+  Widget _errorAnimalState(String error) => Center(
         child: Text(error),
       );
 
-  Widget _noNewsState() => const Center(
+  Widget _noAnimalState() => const Center(
         child: Text('No news available'),
       );
 
-  Widget _loadingNewsState(BuildContext context) => Shimmer.fromColors(
+  Widget _loadingAnimalState(BuildContext context) => Shimmer.fromColors(
         baseColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.1),
         highlightColor: Theme.of(context).primaryColor.withOpacity(0.2),
         period: const Duration(seconds: 1),
