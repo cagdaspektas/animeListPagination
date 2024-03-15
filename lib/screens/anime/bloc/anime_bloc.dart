@@ -24,7 +24,7 @@ class AnimeBloc extends Bloc<AnimeEvent, AnimeState> {
     }
   }
 
-  AnimeBloc({required this.animeRepository}) : super(AnimeInitial()) {
+  AnimeBloc({required this.animeRepository}) : super(const AnimeState()) {
     on<GetAnimeDatas>((event, emit) async {
       await _getAllAnimes(event, emit);
     });
@@ -41,15 +41,17 @@ class AnimeBloc extends Bloc<AnimeEvent, AnimeState> {
         if (animes!.data!.isNotEmpty) {
           scrollController.addListener(pagination);
           animeList?.addAll(animes!.data!);
-          emit(AnimeDatasState(animes!));
+          emit(state.copyWith(animes: animes!, status: AnimeStatus.animeDatasState));
         } else {
-          emit(NoAnimalState());
+          emit(state.copyWith(animes: null, status: AnimeStatus.noAnimalState));
         }
       } else {
-        emit(const ErrorAnimalState("There is an error about animes wait for a moment and try again later"));
+        emit(state.copyWith(
+            error: "There is an error about animes wait for a moment and try again later",
+            status: AnimeStatus.errorAnimalState));
       }
     } catch (error) {
-      emit(ErrorAnimalState(error.toString()));
+      emit(state.copyWith(error: error.toString(), status: AnimeStatus.errorAnimalState));
     }
   }
 
@@ -61,15 +63,17 @@ class AnimeBloc extends Bloc<AnimeEvent, AnimeState> {
       if (animes != null) {
         if (animes!.data!.isNotEmpty) {
           animeList!.addAll(animes!.data!);
-          emit(AnimeDataPagination(animeList!));
+          emit(state.copyWith(animes: animes!, animeList: animeList, status: AnimeStatus.animeDataPagination));
         } else {
-          emit(NoAnimalState());
+          emit(state.copyWith(animes: null, animeList: null, status: AnimeStatus.noAnimalState));
         }
       } else {
-        emit(const ErrorAnimalState("There is an error about animes wait for a moment and try again later"));
+        emit(state.copyWith(
+            error: "There is an error about animes wait for a moment and try again later",
+            status: AnimeStatus.errorAnimalState));
       }
     } catch (error) {
-      emit(ErrorAnimalState(error.toString()));
+      emit(state.copyWith(error: error.toString(), status: AnimeStatus.errorAnimalState));
     }
   }
 }

@@ -20,24 +20,23 @@ class AnimeView extends StatelessWidget {
         title: const Text('Anime App'),
         centerTitle: true,
       ),
-      body: body(context, bloc),
+      body: _body(context, bloc),
     );
   }
 
-  @visibleForTesting
-  Widget body(BuildContext context, AnimeBloc bloc) => BlocBuilder<AnimeBloc, AnimeState>(
+  Widget _body(BuildContext context, AnimeBloc bloc) => BlocBuilder<AnimeBloc, AnimeState>(
         bloc: bloc,
         builder: (context, state) {
-          if (state is ErrorAnimalState) {
-            return _errorAnimalState(state.error);
-          } else if (state is AnimeInitial) {
+          if (state.status == AnimeStatus.errorAnimalState) {
+            return _errorAnimalState(state.error ?? "");
+          } else if (state.status == AnimeStatus.animeInitial) {
             bloc.add(GetAnimeDatas());
             return _loadingAnimalState(context);
-          } else if (state is NoAnimalState) {
+          } else if (state.status == AnimeStatus.noAnimalState) {
             return _noAnimalState();
-          } else if (state is AnimeDatasState) {
-            return _animes(context, state.animes.data, bloc);
-          } else if (state is AnimeDataPagination) {
+          } else if (state.status == AnimeStatus.animeDatasState) {
+            return _animes(context, state.animes?.data, bloc);
+          } else if (state.status == AnimeStatus.animeDataPagination) {
             return _animes(context, state.animeList, bloc);
           }
 
