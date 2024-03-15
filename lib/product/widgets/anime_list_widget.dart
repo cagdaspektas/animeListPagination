@@ -10,7 +10,6 @@ class AnimeListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => InkWell(
-        key: key,
         onTap: onTap,
         child: Card(
           child: Column(
